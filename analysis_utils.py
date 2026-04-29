@@ -7,10 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-
-# ------------------------------
 # Visual style
-# ------------------------------
 
 def set_report_style() -> None:
     """Clean academic/report style for all figures."""
@@ -47,10 +44,7 @@ def _safe_name(text: str) -> str:
         .replace("-", "_")
     )
 
-
-# ------------------------------
 # Plot helpers
-# ------------------------------
 
 def _save_correlation_plot(corr: pd.Series, target: str, dataset_name: str, out_dir: Path) -> None:
     corr_plot = corr.drop(labels=[target], errors="ignore").sort_values()
@@ -154,10 +148,7 @@ def _save_heatmap(corr_matrix: pd.DataFrame, dataset_name: str, out_dir: Path) -
     fig.savefig(out_dir / f"{_safe_name(dataset_name)}_heatmap.png", bbox_inches="tight")
     plt.close(fig)
 
-
-# ------------------------------
 # Analysis pipeline
-# ------------------------------
 
 def analyze_dataset(df: pd.DataFrame, target: str, dataset_name: str, output_dir: str = "data/plots") -> None:
     """

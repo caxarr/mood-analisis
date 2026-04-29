@@ -1,0 +1,98 @@
+cat > index.html <<'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis of Factors Affecting Well-Being</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f6f8;
+      color: #222;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 70px 25px;
+    }
+
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .links {
+      margin-top: 30px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    a {
+      display: inline-block;
+      padding: 14px 22px;
+      background: #1f2937;
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    a.secondary {
+      background: #4b5563;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Analysis of Factors Affecting Well-Being</h1>
+
+      <p>
+        This project analyzes factors related to well-being, stress and productivity
+        using several datasets. The main methods are correlation analysis and
+        Principal Component Analysis.
+      </p>
+
+      <p>
+        The project includes a written report and a short presentation.
+      </p>
+
+      <div class="links">
+        <a href="quarto_files/prezentation.html">Open presentation</a>
+        <a class="secondary" href="quarto_files/analysis.html">Open full report</a>
+      </div>
+
+      <div class="footer">
+        Author: Vladyslav Rudenko
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+EOF

@@ -1,0 +1,115 @@
+---
+title: "Analysis of Factors Affecting Well-Being"
+author: "Vladyslav Rudenko"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: slide
+    width: 1280
+    height: 720
+    margin: 0.08
+execute-dir: project
+---
+
+## Project idea
+
+I analyzed which factors are related to well-being, stress and productivity.
+
+The main focus was on:
+
+- sleep
+- stress
+- physical activity
+- daily habits
+- productivity and work-life balance
+
+---
+
+## Datasets
+
+| Dataset | Target |
+|---|---|
+| Lifestyle | wellness |
+| Productivity | productivity |
+| Sleep | stress_level |
+| Students | stress_numeric |
+| Remote work | productivity_score |
+
+I analyzed the datasets separately because they describe different groups of people.
+
+---
+
+## Methods
+
+I used two main methods:
+
+**Correlation analysis**  
+Shows which variables are directly related to the target.
+
+**PCA**  
+Shows the main structure of the dataset and reduces many variables into several principal components.
+
+---
+
+## Lifestyle dataset
+
+Target: **wellness**
+
+![](../data/plots/pca___wellness_correlation.png){width=82%}
+
+This plot shows which lifestyle factors are most related to wellness.
+
+---
+
+## Productivity dataset
+
+Target: **productivity**
+
+![](../data/plots/productivity_correlation.png){width=82%}
+
+This helped me see which daily habits are connected with higher or lower productivity.
+
+---
+
+## Sleep dataset
+
+Target: **stress_level**
+
+![](../data/plots/sleep___stress_correlation.png){width=82%}
+
+This dataset was useful because stress is strongly connected with sleep and health variables.
+
+---
+
+## Student dataset
+
+Target: **stress_numeric**
+
+![](../data/plots/students___stress_correlation.png){width=82%}
+
+The goal was to see how student lifestyle factors are related to stress.
+
+---
+
+## Remote work dataset
+
+Target: **productivity_score**
+
+![](../data/plots/remote___productivity_correlation.png){width=82%}
+
+This part focused on productivity in remote work conditions.
+
+---
+
+## Conclusion
+
+The same types of variables appeared repeatedly:
+
+- sleep
+- stress
+- physical activity
+- daily habits
+- lifestyle or work-life balance
+
+The analysis does not prove causality, but it shows clear statistical relationships in the available data.
