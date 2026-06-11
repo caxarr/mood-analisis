@@ -130,35 +130,35 @@
     "href": "prezentation.html#lifestyle-dataset",
     "title": "Analysis of Factors Affecting Well-Being",
     "section": "Lifestyle Dataset",
-    "text": "Lifestyle Dataset\nTarget: wellness\nThis plot shows which lifestyle factors are most related to the wellness score."
+    "text": "Lifestyle Dataset\nTarget: wellness\n\n\n\n\n\n\n\n\n\nThis plot shows which lifestyle factors are most related to the wellness score."
   },
   {
     "objectID": "prezentation.html#productivity-dataset",
     "href": "prezentation.html#productivity-dataset",
     "title": "Analysis of Factors Affecting Well-Being",
     "section": "Productivity Dataset",
-    "text": "Productivity Dataset\nTarget: productivity\nThis helped identify which daily habits are connected with higher or lower productivity."
+    "text": "Productivity Dataset\nTarget: productivity\n\n\n\n\n\n\n\n\n\nThis helped identify which daily habits are connected with higher or lower productivity."
   },
   {
     "objectID": "prezentation.html#sleep-dataset",
     "href": "prezentation.html#sleep-dataset",
     "title": "Analysis of Factors Affecting Well-Being",
     "section": "Sleep Dataset",
-    "text": "Sleep Dataset\nTarget: stress_level\nThis dataset was useful because stress is strongly connected with sleep and health variables."
+    "text": "Sleep Dataset\nTarget: stress_level\n\n\n\n\n\n\n\n\n\nThis dataset was useful because stress is strongly connected with sleep and health variables."
   },
   {
     "objectID": "prezentation.html#student-dataset",
     "href": "prezentation.html#student-dataset",
     "title": "Analysis of Factors Affecting Well-Being",
     "section": "Student Dataset",
-    "text": "Student Dataset\nTarget: stress_numeric\nThe goal was to see how student lifestyle factors are related to stress."
+    "text": "Student Dataset\nTarget: stress_numeric\n\n\n\n\n\n\n\n\n\nThe goal was to see how student lifestyle factors are related to stress."
   },
   {
     "objectID": "prezentation.html#remote-work-dataset",
     "href": "prezentation.html#remote-work-dataset",
     "title": "Analysis of Factors Affecting Well-Being",
     "section": "Remote Work Dataset",
-    "text": "Remote Work Dataset\nTarget: productivity_score\nThis part focused on productivity in remote work conditions."
+    "text": "Remote Work Dataset\nTarget: productivity_score\n\n\n\n\n\n\n\n\n\nThis part focused on productivity in remote work conditions."
   },
   {
     "objectID": "prezentation.html#conclusion",
