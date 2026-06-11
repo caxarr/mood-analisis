@@ -1,0 +1,170 @@
+[
+  {
+    "objectID": "analysis.html",
+    "href": "analysis.html",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "",
+    "text": "The goal of this project is to identify which lifestyle, sleep, and work-related variables are most strongly associated with well-being, stress, and productivity. The analysis is based on five separate datasets, each representing a different population and context (Kumar 2025; Tharmalingam 2023; Mnaadi 2023; Rogg 2023; A. 2024). Because the datasets come from different sources and cannot be meaningfully merged, each one is analysed independently; the results are then compared in Section 5 to surface recurring themes.\nThe two analytical methods applied throughout are Pearson correlation (described in Section 3.1) and Principal Component Analysis (described in Section 3.3). Both methods are implemented using the scikit-learn library (Pedregosa et al. 2011) and data manipulation relies on pandas (McKinney 2010)."
+  },
+  {
+    "objectID": "analysis.html#sec-methods-corr",
+    "href": "analysis.html#sec-methods-corr",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "3.1 Correlation Analysis",
+    "text": "3.1 Correlation Analysis\nFor each dataset, the Pearson correlation coefficient is computed between every numeric predictor and the selected target variable. The Pearson coefficient measures the strength and direction of a linear relationship between two continuous variables and is defined as:\n\\[\nr_{xy} = \\frac{\\displaystyle\\sum_{i=1}^{n}(x_i - \\bar{x})(y_i - \\bar{y})}\n              {\\sqrt{\\displaystyle\\sum_{i=1}^{n}(x_i - \\bar{x})^2} \\cdot\n               \\sqrt{\\displaystyle\\sum_{i=1}^{n}(y_i - \\bar{y})^2}}\n\\tag{1}\\]\nwhere \\(x_i\\) and \\(y_i\\) are paired observations, and \\(\\bar{x}\\), \\(\\bar{y}\\) are their respective sample means. A value of \\(r = +1\\) indicates a perfect positive linear relationship; \\(r = -1\\) a perfect negative one; \\(r = 0\\) no linear association. Results should not be interpreted as evidence of causation."
+  },
+  {
+    "objectID": "analysis.html#sec-methods-zscore",
+    "href": "analysis.html#sec-methods-zscore",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "3.2 Standardisation",
+    "text": "3.2 Standardisation\nBefore PCA, all predictor columns are standardised to zero mean and unit variance using the z-score transformation defined in Equation 2. This step is essential because PCA is sensitive to the scale of the input variables — without standardisation, variables with large numeric ranges would dominate the principal components regardless of their statistical relevance.\n\\[\nz_i = \\frac{x_i - \\mu}{\\sigma}\n\\tag{2}\\]\nwhere \\(\\mu\\) is the sample mean and \\(\\sigma\\) is the sample standard deviation of the variable."
+  },
+  {
+    "objectID": "analysis.html#sec-methods-pca",
+    "href": "analysis.html#sec-methods-pca",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "3.3 Principal Component Analysis",
+    "text": "3.3 Principal Component Analysis\nPCA is an unsupervised dimensionality-reduction method that transforms the original \\(p\\) numeric variables into a new orthogonal coordinate system (Jolliffe and Cadima 2016). The first principal component (PC1) captures the largest possible fraction of the total variance; PC2 captures the most remaining variance while being orthogonal to PC1, and so on.\nThe fraction of total variance explained by component \\(k\\) is called the explained variance ratio (EVR):\n\\[\n\\text{EVR}_k = \\frac{\\lambda_k}{\\displaystyle\\sum_{j=1}^{p}\\lambda_j}\n\\tag{3}\\]\nwhere \\(\\lambda_k\\) is the \\(k\\)-th eigenvalue of the covariance matrix of the standardised data (see Equation 2 for standardisation).\nThree PCA outputs are reported for each dataset: (1) the explained variance plot (Equation 3), (2) the PC1 loadings, and (3) a scatter of observations in the PC1–PC2 plane."
+  },
+  {
+    "objectID": "analysis.html#sec-lifestyle",
+    "href": "analysis.html#sec-lifestyle",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "4.1 Dataset 1: Lifestyle and Wellness",
+    "text": "4.1 Dataset 1: Lifestyle and Wellness\nTarget variable: wellness | Source: Kumar (2025)\n\n\nCode\ncorr_table(df_pca, \"wellness\")\n\n\n\n\nTable 2: Pearson correlations of lifestyle variables with wellness. Blue bars (positive r) indicate variables associated with higher wellness; red bars (negative r) indicate variables associated with lower wellness.\n\n\n\n\n\n\nFeature\nPearson r\n\n\n\n\nproductivity\n0.902\n\n\nsleep_quality\n0.75\n\n\nsleep_hours\n0.581\n\n\nexercise_min\n0.229\n\n\nsocial_hours\n0.07\n\n\nscreen_time_hours\n-0.636\n\n\nstress_level\n-0.914\n\n\n\n\n\n\n\n\nAs shown in Table 2, sleep quality and productivity are the variables most positively associated with the wellness score, while stress level shows the strongest negative correlation, suggesting that higher stress is consistently linked to lower well-being in this dataset.\n\n\nCode\nplot_correlations(df_pca, \"wellness\", \"Lifestyle: Correlation with Wellness\")\n\n\n\n\n\n\n\n\nFigure 1: Pearson correlations between lifestyle variables and wellness. Bars to the right indicate positive associations; bars to the left indicate negative associations.\n\n\n\n\n\nFigure 1 visualises the same information graphically. The magnitude of the bar reflects the strength of the association; the sign indicates its direction. Variables with absolute \\(r\\) values above 0.3 are considered practically meaningful in exploratory analyses.\n\n\nCode\nscores_pca, loadings_pca, vr_pca = run_pca(df_pca, \"wellness\")\nplot_variance(vr_pca, \"Lifestyle: PCA Explained Variance\")\n\n\n\n\n\n\n\n\nFigure 2: PCA explained variance for the lifestyle dataset. Bars show per-component variance; the line shows cumulative variance. The first two components together explain a substantial fraction of total variability.\n\n\n\n\n\nFigure 2 shows how the total variance is distributed across principal components. If the first two or three components account for a large share of the total variance, the dataset has a compact low-dimensional structure that can be summarised without losing much information.\n\n\nCode\nplot_loadings(loadings_pca, \"Lifestyle: PC1 Loadings\")\n\n\n\n\n\n\n\n\nFigure 3: PC1 loadings for the lifestyle dataset. Large absolute loading values indicate variables that contribute most strongly to the dominant pattern.\n\n\n\n\n\nFigure 3 reveals which variables drive PC1 (the direction of maximum variance). Variables with loadings of the same sign move together, while variables with opposite signs move in opposing directions within the dominant pattern.\n\n\nCode\nplot_pc_scatter(scores_pca, \"Lifestyle: PC1 vs PC2\")\n\n\n\n\n\n\n\n\nFigure 4: PC1 vs PC2 scatter for the lifestyle dataset. Each point represents one observation projected into the two-dimensional PCA space.\n\n\n\n\n\nFigure 4 projects all observations into the PC1–PC2 plane. Visible clusters or gradients would suggest meaningful subgroups in the data; a uniform cloud would indicate that variation is continuous and unsegmented."
+  },
+  {
+    "objectID": "analysis.html#sec-productivity",
+    "href": "analysis.html#sec-productivity",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "4.2 Dataset 2: Productivity and Daily Habits",
+    "text": "4.2 Dataset 2: Productivity and Daily Habits\nTarget variable: productivity | Source: Mnaadi (2023)\n\n\nCode\ncorr_table(df_prod, \"productivity\")\n\n\n\n\nTable 3: Pearson correlations of daily-habit variables with productivity (n = 20 000).\n\n\n\n\n\n\nFeature\nPearson r\n\n\n\n\nmood\n0.555\n\n\nsleep_hours\n0.498\n\n\ndiet_quality\n0.484\n\n\ndaily_exercise_mins\n0.206\n\n\nscreen_time_hours\n-0.18\n\n\nstress_level\n-0.56\n\n\n\n\n\n\n\n\nTable 3 summarises the linear associations for the productivity dataset. With 20 000 observations, even small correlation coefficients can be statistically significant, so magnitude should be assessed alongside direction.\n\n\nCode\nplot_correlations(df_prod, \"productivity\", \"Productivity: Correlation with Productivity\")\n\n\n\n\n\n\n\n\nFigure 5: Pearson correlations between daily-habit variables and productivity.\n\n\n\n\n\nThe pattern in Figure 5 indicates which daily habits have the most direct linear relationship with productivity. Variables that appear repeatedly across datasets (e.g., sleep, stress) provide stronger evidence for their role in well-being.\n\n\nCode\nscores_prod, loadings_prod, vr_prod = run_pca(df_prod, \"productivity\")\nplot_variance(vr_prod, \"Productivity: PCA Explained Variance\")\n\n\n\n\n\n\n\n\nFigure 6: PCA explained variance for the productivity dataset.\n\n\n\n\n\nFigure 6 shows the variance distribution across principal components for the productivity dataset. The shape of the cumulative curve reveals how quickly the most important dimensions can account for the majority of variability.\n\n\nCode\nplot_loadings(loadings_prod, \"Productivity: PC1 Loadings\")\n\n\n\n\n\n\n\n\nFigure 7: PC1 loadings for the productivity dataset.\n\n\n\n\n\nFigure 7 identifies which predictors contribute most to PC1. If multiple lifestyle-related variables (sleep, stress, exercise) load strongly on the same component, this supports the hypothesis that well-being is multi-factorial rather than driven by a single cause.\n\n\nCode\nplot_pc_scatter(scores_prod, \"Productivity: PC1 vs PC2\")\n\n\n\n\n\n\n\n\nFigure 8: PC1 vs PC2 scatter for the productivity dataset (random subsample of 3 000 observations).\n\n\n\n\n\nDue to the large sample size, Figure 8 displays a random subsample of 3 000 observations to keep the plot readable without losing the overall distributional shape."
+  },
+  {
+    "objectID": "analysis.html#sec-sleep",
+    "href": "analysis.html#sec-sleep",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "4.3 Dataset 3: Sleep and Stress",
+    "text": "4.3 Dataset 3: Sleep and Stress\nTarget variable: stress_level | Source: Tharmalingam (2023)\n\n\nCode\ncorr_table(df_sleep, \"stress_level\")\n\n\n\n\nTable 4: Pearson correlations of sleep and health variables with stress_level. Non-numeric columns (gender, occupation, BMI category, blood pressure, sleep disorder) are excluded from the analysis.\n\n\n\n\n\n\nFeature\nPearson r\n\n\n\n\nheart_rate\n0.67\n\n\ndaily_steps\n0.187\n\n\nphysical_activity_level\n-0.034\n\n\nage\n-0.422\n\n\nsleep_duration\n-0.811\n\n\nquality_of_sleep\n-0.899\n\n\n\n\n\n\n\n\nAs Table 4 shows, sleep quality and duration tend to correlate negatively with stress level (higher sleep quality → lower stress), while variables like heart rate may exhibit a positive association. Note that only numeric columns are included; categorical variables such as occupation and BMI category are excluded.\n\n\nCode\nplot_correlations(df_sleep, \"stress_level\", \"Sleep: Correlation with Stress Level\")\n\n\n\n\n\n\n\n\nFigure 9: Pearson correlations between numeric sleep/health variables and stress_level.\n\n\n\n\n\nFigure 9 provides a visual overview of correlation directions. This dataset is particularly relevant because the relationship between sleep and stress is well-established in the clinical literature, making it a useful benchmark for verifying that the analysis produces plausible results.\n\n\nCode\nscores_sleep, loadings_sleep, vr_sleep = run_pca(df_sleep, \"stress_level\")\nplot_variance(vr_sleep, \"Sleep: PCA Explained Variance\")\n\n\n\n\n\n\n\n\nFigure 10: PCA explained variance for the sleep dataset.\n\n\n\n\n\nFigure 10 shows the eigenvalue decay for the sleep dataset. A steep drop after PC1 indicates that one dominant pattern accounts for most of the structure; a gentler slope means the variance is spread more evenly across dimensions.\n\n\nCode\nplot_loadings(loadings_sleep, \"Sleep: PC1 Loadings\")\n\n\n\n\n\n\n\n\nFigure 11: PC1 loadings for the sleep dataset.\n\n\n\n\n\nFigure 11 identifies the health and lifestyle variables that define the primary direction of variation. Variables with large absolute loadings on PC1 are the main contributors to the dominant pattern in this dataset.\n\n\nCode\nplot_pc_scatter(scores_sleep, \"Sleep: PC1 vs PC2\")\n\n\n\n\n\n\n\n\nFigure 12: PC1 vs PC2 scatter for the sleep dataset.\n\n\n\n\n\nFigure 12 shows how the 374 observations distribute in the two-dimensional PCA space. The presence of visible bands or clusters would suggest that the dataset contains distinguishable subgroups (e.g., people with and without sleep disorders)."
+  },
+  {
+    "objectID": "analysis.html#sec-students",
+    "href": "analysis.html#sec-students",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "4.4 Dataset 4: Student Lifestyle",
+    "text": "4.4 Dataset 4: Student Lifestyle\nTarget variable: stress_numeric | Source: Rogg (2023)\n\n\nCode\ncorr_table(df_students, \"stress_numeric\")\n\n\n\n\nTable 5: Pearson correlations of student lifestyle variables with stress_numeric.\n\n\n\n\n\n\nFeature\nPearson r\n\n\n\n\nStudy_Hours_Per_Day\n0.739\n\n\nGPA\n0.55\n\n\nExtracurricular_Hours_Per_Day\n-0.006\n\n\nSocial_Hours_Per_Day\n-0.055\n\n\nPhysical_Activity_Hours_Per_Day\n-0.205\n\n\nSleep_Hours_Per_Day\n-0.299\n\n\n\n\n\n\n\n\nTable 5 presents the associations for the student dataset. Variables such as study hours per day, sleep hours, and GPA are typically expected to relate to stress; the table shows whether these expectations are confirmed in this sample.\n\n\nCode\nplot_correlations(df_students, \"stress_numeric\", \"Students: Correlation with Stress\")\n\n\n\n\n\n\n\n\nFigure 13: Pearson correlations between student lifestyle variables and stress_numeric.\n\n\n\n\n\nFigure 13 shows which aspects of student life most strongly predict the numeric stress score. This comparison is interesting because student stress operates in a different context from clinical or workplace stress, yet some common factors (sleep, activity) may still emerge.\n\n\nCode\nscores_students, loadings_students, vr_students = run_pca(df_students, \"stress_numeric\")\nplot_variance(vr_students, \"Students: PCA Explained Variance\")\n\n\n\n\n\n\n\n\nFigure 14: PCA explained variance for the student lifestyle dataset.\n\n\n\n\n\nThe variance decomposition in Figure 14 indicates how many components are needed to capture the main structure of the student dataset. Because the dataset has only 6 predictor variables, the maximum number of components is 6.\n\n\nCode\nplot_loadings(loadings_students, \"Students: PC1 Loadings\")\n\n\n\n\n\n\n\n\nFigure 15: PC1 loadings for the student lifestyle dataset.\n\n\n\n\n\nFigure 15 shows which student lifestyle variables dominate PC1. If study hours and sleep hours load with opposite signs, it would suggest a trade-off pattern: students who study more tend to sleep less, and vice versa.\n\n\nCode\nplot_pc_scatter(scores_students, \"Students: PC1 vs PC2\")\n\n\n\n\n\n\n\n\nFigure 16: PC1 vs PC2 scatter for the student lifestyle dataset.\n\n\n\n\n\nFigure 16 maps the 2 000 student observations into the PC1–PC2 plane. A clear linear or curved structure would imply that student lifestyle profiles vary along a well-defined continuum."
+  },
+  {
+    "objectID": "analysis.html#sec-remote",
+    "href": "analysis.html#sec-remote",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "4.5 Dataset 5: Remote Work",
+    "text": "4.5 Dataset 5: Remote Work\nTarget variable: productivity_score | Source: A. (2024)\n\n\nCode\ncorr_table(df_remote, \"productivity_score\")\n\n\n\n\nTable 6: Pearson correlations of remote-work variables with productivity_score. Non-numeric columns and boolean indicators are excluded; ID column employee_id is also dropped.\n\n\n\n\n\n\nFeature\nPearson r\n\n\n\n\nexperience_years\n0.082\n\n\nwork_life_balance_rating\n0.073\n\n\nteam_communication_effectiveness\n0.025\n\n\nhours_worked_per_week\n-0.006\n\n\nburnout_score\n-0.015\n\n\nsleep_hours_per_day\n-0.018\n\n\nage\n-0.057\n\n\nremote_setup_satisfaction\n-0.125\n\n\n\n\n\n\n\n\nTable 6 presents the correlations for the remote work dataset. With only 100 observations, individual correlations should be interpreted cautiously, but the overall pattern can still indicate which aspects of remote work conditions most closely align with productivity.\n\n\nCode\nplot_correlations(df_remote, \"productivity_score\", \"Remote Work: Correlation with Productivity Score\")\n\n\n\n\n\n\n\n\nFigure 17: Pearson correlations between remote-work numeric variables and productivity_score.\n\n\n\n\n\nFigure 17 shows whether variables such as work-life balance, sleep hours, and burnout score exhibit direct linear associations with the remote productivity score. A high absolute correlation for burnout would be consistent with the expectation that burnout and productivity are inversely related.\n\n\nCode\nscores_remote, loadings_remote, vr_remote = run_pca(df_remote, \"productivity_score\")\nplot_variance(vr_remote, \"Remote Work: PCA Explained Variance\")\n\n\n\n\n\n\n\n\nFigure 18: PCA explained variance for the remote work dataset.\n\n\n\n\n\nFigure 18 shows how the 8 numeric predictor variables spread across principal components. Because the dataset is small (100 rows), PCA results should be treated as indicative rather than definitive.\n\n\nCode\nplot_loadings(loadings_remote, \"Remote Work: PC1 Loadings\")\n\n\n\n\n\n\n\n\nFigure 19: PC1 loadings for the remote work dataset.\n\n\n\n\n\nFigure 19 identifies which remote-work predictors define the dominant pattern. Variables loading strongly on PC1 are those that co-vary the most across the 100 observed employees.\n\n\nCode\nplot_pc_scatter(scores_remote, \"Remote Work: PC1 vs PC2\")\n\n\n\n\n\n\n\n\nFigure 20: PC1 vs PC2 scatter for the remote work dataset.\n\n\n\n\n\nFigure 20 shows the relatively small remote work sample in the two-dimensional PCA space. Outliers or tight clusters would warrant closer examination to understand whether they represent specific subgroups (e.g., by work mode or job role)."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "What Affects Well-Being?",
+    "section": "",
+    "text": "This project investigates which lifestyle, sleep, and work-related factors are statistically associated with human well-being, stress, and productivity. Five independently collected datasets are analysed using Pearson correlation and Principal Component Analysis (PCA).\nRather than merging all data into one table (which would introduce misleading cross-population comparisons), each dataset is examined separately and the results are compared at the end to surface recurring patterns."
+  },
+  {
+    "objectID": "index.html#about-this-project",
+    "href": "index.html#about-this-project",
+    "title": "What Affects Well-Being?",
+    "section": "",
+    "text": "This project investigates which lifestyle, sleep, and work-related factors are statistically associated with human well-being, stress, and productivity. Five independently collected datasets are analysed using Pearson correlation and Principal Component Analysis (PCA).\nRather than merging all data into one table (which would introduce misleading cross-population comparisons), each dataset is examined separately and the results are compared at the end to surface recurring patterns."
+  },
+  {
+    "objectID": "index.html#quick-navigation",
+    "href": "index.html#quick-navigation",
+    "title": "What Affects Well-Being?",
+    "section": "Quick Navigation",
+    "text": "Quick Navigation\n\n\n\nPage\nWhat you will find\n\n\n\n\nAnalysis\nFull statistical report with tables, figures, equations, and citations\n\n\nDashboard\nInteractive overview — key metrics at a glance\n\n\nPresentation\nSlide deck summarising findings"
+  },
+  {
+    "objectID": "index.html#datasets",
+    "href": "index.html#datasets",
+    "title": "What Affects Well-Being?",
+    "section": "Datasets",
+    "text": "Datasets\nFive cleaned datasets are used (see Analysis §Datasets for details):\n\nLifestyle & Wellness — screen time, sleep, exercise → wellness\nProductivity & Habits — daily habits, sleep, stress → productivity\nSleep & Health — clinical sleep study → stress_level\nStudent Lifestyle — study load, GPA, activity → stress_numeric\nRemote Work — work conditions, burnout → productivity_score"
+  },
+  {
+    "objectID": "index.html#methods",
+    "href": "index.html#methods",
+    "title": "What Affects Well-Being?",
+    "section": "Methods",
+    "text": "Methods\nTwo complementary methods are applied to every dataset:\n\nPearson correlation — identifies variables with the strongest direct linear relationship with the target variable.\nPCA — reveals the dominant directions of variance and which original variables drive them.\n\nResults do not imply causation; they describe statistical associations in the available samples."
+  },
+  {
+    "objectID": "index.html#source-code-data",
+    "href": "index.html#source-code-data",
+    "title": "What Affects Well-Being?",
+    "section": "Source Code & Data",
+    "text": "Source Code & Data\nAll code, cleaned data, and rendered output are available on GitHub: github.com/caxarr/mood-analisis"
+  },
+  {
+    "objectID": "prezentation.html#project-idea",
+    "href": "prezentation.html#project-idea",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Project Idea",
+    "text": "Project Idea\nI analysed which factors are related to well-being, stress, and productivity.\nThe main focus was on:\n\nSleep\nStress\nPhysical activity\nDaily habits\nProductivity and work-life balance"
+  },
+  {
+    "objectID": "prezentation.html#datasets",
+    "href": "prezentation.html#datasets",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Datasets",
+    "text": "Datasets\n\n\n\nDataset\nTarget\n\n\n\n\nLifestyle\nwellness\n\n\nProductivity\nproductivity\n\n\nSleep\nstress_level\n\n\nStudents\nstress_numeric\n\n\nRemote work\nproductivity_score\n\n\n\nI analysed the datasets separately because they describe different groups of people."
+  },
+  {
+    "objectID": "prezentation.html#methods",
+    "href": "prezentation.html#methods",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Methods",
+    "text": "Methods\nI used two main methods:\nCorrelation analysis Shows which variables are directly related to the target.\nPCA Shows the main structure of the dataset and reduces many variables into several principal components."
+  },
+  {
+    "objectID": "prezentation.html#lifestyle-dataset",
+    "href": "prezentation.html#lifestyle-dataset",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Lifestyle Dataset",
+    "text": "Lifestyle Dataset\nTarget: wellness\nThis plot shows which lifestyle factors are most related to the wellness score."
+  },
+  {
+    "objectID": "prezentation.html#productivity-dataset",
+    "href": "prezentation.html#productivity-dataset",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Productivity Dataset",
+    "text": "Productivity Dataset\nTarget: productivity\nThis helped identify which daily habits are connected with higher or lower productivity."
+  },
+  {
+    "objectID": "prezentation.html#sleep-dataset",
+    "href": "prezentation.html#sleep-dataset",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Sleep Dataset",
+    "text": "Sleep Dataset\nTarget: stress_level\nThis dataset was useful because stress is strongly connected with sleep and health variables."
+  },
+  {
+    "objectID": "prezentation.html#student-dataset",
+    "href": "prezentation.html#student-dataset",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Student Dataset",
+    "text": "Student Dataset\nTarget: stress_numeric\nThe goal was to see how student lifestyle factors are related to stress."
+  },
+  {
+    "objectID": "prezentation.html#remote-work-dataset",
+    "href": "prezentation.html#remote-work-dataset",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Remote Work Dataset",
+    "text": "Remote Work Dataset\nTarget: productivity_score\nThis part focused on productivity in remote work conditions."
+  },
+  {
+    "objectID": "prezentation.html#conclusion",
+    "href": "prezentation.html#conclusion",
+    "title": "Analysis of Factors Affecting Well-Being",
+    "section": "Conclusion",
+    "text": "Conclusion\nThe same types of variables appeared repeatedly:\n\nSleep (quality and duration)\nStress\nPhysical activity\nDaily habits\nLifestyle or work-life balance\n\nThe analysis does not prove causality, but it shows clear statistical relationships in the available data."
+  }
+]

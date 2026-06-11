@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Well-Being & Productivity Analysis"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: analysis.qmd
+        text: Analysis
+      - href: dashboard.qmd
+        text: Dashboard
+      - href: prezentation.qmd
+        text: Presentation
+    right:
+      - icon: github
+        href: https://github.com/caxarr/mood-analisis
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    code-tools: true
+    smooth-scroll: true
+
+execute:
+  execute-dir: project
+  warning: false
+  message: false
+  freeze: false

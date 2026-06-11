@@ -1,0 +1,221 @@
+---
+title: "Well-Being Analysis — Dashboard"
+format:
+  dashboard:
+    orientation: rows
+    theme: cosmo
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{python}
+#| label: setup
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+plt.rcParams.update({
+    "figure.facecolor": "white",
+    "axes.facecolor": "#FAFAFA",
+    "axes.grid": True,
+    "axes.axisbelow": True,
+    "grid.color": "#E8E8E8",
+    "grid.linestyle": "--",
+    "axes.titlesize": 11,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 10,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+})
+
+_ID = {"person_id", "employee_id"}
+
+def numeric_features(df, target):
+    num = df.select_dtypes(include="number").columns.tolist()
+    return [c for c in num if c != target and c not in _ID]
+
+def target_correlations(df, target):
+    feats = numeric_features(df, target)
+    return df[feats + [target]].corr(numeric_only=True)[target].drop(target)
+
+def run_pca(df, target):
+    feats = numeric_features(df, target)
+    X = df[feats].dropna()
+    X_scaled = StandardScaler().fit_transform(X)
+    pca = PCA()
+    scores = pca.fit_transform(X_scaled)
+    return scores, pca.explained_variance_ratio_
+
+def plot_corr(df, target, title):
+    corr = target_correlations(df, target).sort_values()
+    colors = ["#B65E5A" if v < 0 else "#4C78A8" for v in corr.values]
+    h = max(3, len(corr) * 0.4)
+    fig, ax = plt.subplots(figsize=(8, h))
+    ax.barh(corr.index, corr.values, color=colors, edgecolor="none")
+    ax.axvline(0, color="#444", linewidth=1)
+    ax.set_title(title)
+    ax.set_xlabel("Pearson r")
+    for i, v in enumerate(corr.values):
+        ha = "left" if v >= 0 else "right"
+        ax.text(v + (0.01 if v >= 0 else -0.01), i, f"{v:.2f}",
+                va="center", ha=ha, fontsize=8)
+    plt.tight_layout()
+    return fig
+
+def plot_var(var_ratio, title):
+    pcs = np.arange(1, len(var_ratio) + 1)
+    cum = np.cumsum(var_ratio)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    bars = ax.bar(pcs, var_ratio, color="#4C78A8", width=0.7, edgecolor="none",
+                  label="Per-component")
+    ax.plot(pcs, cum, marker="o", color="#222", linewidth=2, label="Cumulative")
+    ax.set_xticks(pcs)
+    ax.set_title(title)
+    ax.set_xlabel("PC")
+    ax.set_ylabel("Variance ratio")
+    for rect, v in zip(bars, var_ratio):
+        ax.text(rect.get_x() + rect.get_width() / 2,
+                rect.get_height() + 0.01, f"{v:.2f}", ha="center", fontsize=8)
+    ax.legend(fontsize=8)
+    plt.tight_layout()
+    return fig
+
+DATA_DIR = "data/clean_data"
+df_pca      = pd.read_csv(f"{DATA_DIR}/clean_pca.csv")
+df_prod     = pd.read_csv(f"{DATA_DIR}/clean_productivity.csv")
+df_sleep    = pd.read_csv(f"{DATA_DIR}/clean_sleep.csv")
+df_students = pd.read_csv(f"{DATA_DIR}/clean_students.csv")
+df_remote   = pd.read_csv(f"{DATA_DIR}/clean_remote.csv")
+
+# Compute key stats for value boxes
+total_obs = len(df_pca) + len(df_prod) + len(df_sleep) + len(df_students) + len(df_remote)
+
+all_corrs = []
+for df, tgt in [
+    (df_pca, "wellness"),
+    (df_prod, "productivity"),
+    (df_sleep, "stress_level"),
+    (df_students, "stress_numeric"),
+    (df_remote, "productivity_score"),
+]:
+    corr = target_correlations(df, tgt)
+    best_feat = corr.abs().idxmax()
+    all_corrs.append((abs(corr[best_feat]), f"{best_feat} = {corr[best_feat]:.2f}"))
+
+best_corr_val, best_corr_label = max(all_corrs, key=lambda x: x[0])
+```
+
+## Key Metrics
+
+```{python}
+#| content: valuebox
+#| title: "Datasets Analysed"
+dict(icon="database", color="info", value=5)
+```
+
+```{python}
+#| content: valuebox
+#| title: "Total Observations"
+dict(icon="people-fill", color="success", value=f"{total_obs:,}")
+```
+
+```{python}
+#| content: valuebox
+#| title: "Strongest Single Correlation"
+dict(icon="graph-up-arrow", color="warning", value=best_corr_label)
+```
+
+## Correlation with Target {.tabset}
+
+### Lifestyle
+
+```{python}
+fig = plot_corr(df_pca, "wellness", "Lifestyle — Correlation with Wellness")
+plt.show()
+plt.close(fig)
+```
+
+### Productivity
+
+```{python}
+fig = plot_corr(df_prod, "productivity", "Productivity — Correlation with Productivity")
+plt.show()
+plt.close(fig)
+```
+
+### Sleep
+
+```{python}
+fig = plot_corr(df_sleep, "stress_level", "Sleep — Correlation with Stress Level")
+plt.show()
+plt.close(fig)
+```
+
+### Students
+
+```{python}
+fig = plot_corr(df_students, "stress_numeric", "Students — Correlation with Stress")
+plt.show()
+plt.close(fig)
+```
+
+### Remote Work
+
+```{python}
+fig = plot_corr(df_remote, "productivity_score", "Remote Work — Correlation with Productivity Score")
+plt.show()
+plt.close(fig)
+```
+
+## PCA Explained Variance {.tabset}
+
+### Lifestyle
+
+```{python}
+_, vr = run_pca(df_pca, "wellness")
+fig = plot_var(vr, "Lifestyle — PCA Explained Variance")
+plt.show()
+plt.close(fig)
+```
+
+### Productivity
+
+```{python}
+_, vr = run_pca(df_prod, "productivity")
+fig = plot_var(vr, "Productivity — PCA Explained Variance")
+plt.show()
+plt.close(fig)
+```
+
+### Sleep
+
+```{python}
+_, vr = run_pca(df_sleep, "stress_level")
+fig = plot_var(vr, "Sleep — PCA Explained Variance")
+plt.show()
+plt.close(fig)
+```
+
+### Students
+
+```{python}
+_, vr = run_pca(df_students, "stress_numeric")
+fig = plot_var(vr, "Students — PCA Explained Variance")
+plt.show()
+plt.close(fig)
+```
+
+### Remote Work
+
+```{python}
+_, vr = run_pca(df_remote, "productivity_score")
+fig = plot_var(vr, "Remote Work — PCA Explained Variance")
+plt.show()
+plt.close(fig)
+```

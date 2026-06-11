@@ -1,121 +1,106 @@
 # What Affects Well-Being? Data Analysis Project
 
-## Project description
-
-This project focuses on analyzing factors that are related to human well-being, stress, mood, and productivity.
-The main idea is to look at several different datasets and try to find common patterns between lifestyle variables such as sleep, physical activity, screen time, and mental state.
-
-Instead of merging all datasets into one, each dataset is analyzed separately.
-This allows avoiding incorrect assumptions, since the datasets come from different sources and represent different groups of people.
+**Published website:** https://caxarr.github.io/mood-analisis/
 
 ---
 
-## Goal
+## Project Description
 
-The goal of this project is to understand:
+This project analyses which lifestyle, sleep, and work-related factors are
+statistically associated with human well-being, stress, and productivity.
+Five independently collected datasets are examined using Pearson correlation
+and Principal Component Analysis (PCA).
 
-- which variables are most strongly related to stress, productivity, and overall condition
-- how different features behave together
-- whether similar patterns appear across different datasets
+Instead of merging all datasets into one, each dataset is analysed separately
+to avoid misleading cross-population comparisons.
 
-The project does not aim to prove causation. It focuses on identifying relationships and structures in the data.
+---
+
+## Website Pages
+
+| Page | File | Description |
+|---|---|---|
+| Home | `index.qmd` | Project overview and navigation |
+| Analysis | `analysis.qmd` | Full statistical report (tables, figures, equations, citations) |
+| Dashboard | `dashboard.qmd` | Interactive overview — key metrics at a glance |
+| Presentation | `prezentation.qmd` | RevealJS slide deck |
 
 ---
 
 ## Datasets
 
-The analysis is based on the following cleaned datasets:
+All source files are in `data/src/`; cleaned versions used for analysis are
+in `data/clean_data/`:
 
-- `clean_pca.csv` — general lifestyle data (target: wellness)
-- `clean_productivity.csv` — productivity and daily habits (target: productivity)
-- `clean_sleep.csv` — sleep and health indicators (target: stress_level)
-- `clean_students.csv` — student lifestyle data (target: stress_numeric)
-- `clean_remote.csv` — remote work and mental state (target: productivity_score)
+| File | Description | Target variable |
+|---|---|---|
+| `clean_pca.csv` | General lifestyle and wellness data | `wellness` |
+| `clean_productivity.csv` | Productivity and daily habits (n = 20 000) | `productivity` |
+| `clean_sleep.csv` | Clinical sleep and health study | `stress_level` |
+| `clean_students.csv` | Student lifestyle and academic outcomes | `stress_numeric` |
+| `clean_remote.csv` | Remote-work conditions and mental health | `productivity_score` |
 
-Each dataset is processed separately and uses its own target variable.
+Original sources (all from Kaggle):
+- [Screen Time vs Mental Wellness Survey](https://www.kaggle.com/datasets/adharshinikumar/screentime-vs-mentalwellness-survey-2025)
+- [Sleep Health and Lifestyle Dataset](https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset)
+- [Mental Health and Productivity Dataset](https://www.kaggle.com/datasets/dewminimnaadi/mental-health-and-productivity-dataset)
+- [Student Lifestyle Dataset](https://www.kaggle.com/datasets/steve1215rogg/student-lifestyle-dataset)
+- [Mental Health in Tech Survey](https://www.kaggle.com/osmi/mental-health-in-tech-survey)
+- [Mental Health of Remote Workers](https://www.kaggle.com/datasets/irhsa15/mental)
 
 ---
 
 ## Methods
 
-### Data preparation
-
-- removing duplicates
-- handling missing values
-- renaming columns
-- selecting numeric features for analysis
+- **Pearson correlation** — linear association between each predictor and the target
+- **PCA** — dimensionality reduction to reveal dominant variance structure
 
 ---
 
-### Correlation analysis
+## Project Structure
 
-For each dataset, correlation between all variables and the selected target is calculated. This helps to identify which variables are most strongly associated with the target.
-
----
-
-### Principal Component Analysis (PCA)
-
-PCA is used to:
-
-- reduce dimensionality
-- identify main directions of variation in the data
-- understand how variables group together
-
-For each dataset, the following are analyzed:
-
-- explained variance ratio
-- loadings of the first principal component (PC1)
-- relationship between the first two components
-
----
-
-## Output
-
-For each dataset, the following results are generated:
-
-- correlation with target (bar chart)
-- correlation matrix (heatmap)
-- explained variance of principal components
-- PC1 loadings
-- PC1 vs PC2 scatter plot
-
-All plots and tables are saved in:
-- data/plots/
+```
+.
+├── _quarto.yml             # Quarto website configuration
+├── references.bib          # BibTeX citations
+├── index.qmd               # Home page
+├── analysis.qmd            # Main analysis report
+├── dashboard.qmd           # Dashboard
+├── prezentation.qmd        # RevealJS presentation
+├── analysis_utils.py       # Python helper module (used by main.py)
+├── cleaning.py             # Data cleaning scripts
+├── main.py                 # Run full analysis pipeline
+├── data/
+│   ├── clean_data/         # Cleaned CSV datasets
+│   ├── plots/              # Generated plots (from main.py)
+│   └── src/                # Raw source CSVs
+└── docs/                   # Rendered website output (GitHub Pages)
+```
 
 ---
 
-## How to run
+## How to Build
 
-1. Install dependencies:
+Install dependencies:
 
-- pip install pandas numpy matplotlib seaborn scikit-learn
+```bash
+pip install pandas numpy matplotlib scikit-learn jupyter tabulate
+```
 
-2. Run the main script:
+Render the website:
 
-- python main.py
+```bash
+quarto render
+```
 
-## Notes
+Output is placed in `docs/`. To preview locally:
 
-- Datasets are not merged because they do not share a common structure or identifiers
-- PCA is used to identify patterns, not to measure direct influence
-- Results depend on the quality and structure of each dataset
-
----
-
-## Conclusion
-
-Across different datasets, some variables consistently appear to be related to human condition:
-
-- stress level
-- sleep duration and quality
-- physical activity
-- productivity or workload
-
-These variables show strong correlations with target variables and also appear in the main principal components.
+```bash
+quarto preview
+```
 
 ---
 
 ## Author
 
-Vladyslav Rudenko
-Student project in data analysis.
+Vladyslav Rudenko — Student project in data analysis.

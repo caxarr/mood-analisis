@@ -1,0 +1,60 @@
+---
+title: "What Affects Well-Being?"
+subtitle: "An Exploratory Data Analysis Project"
+author: "Vladyslav Rudenko"
+date: last-modified
+---
+
+## About This Project
+
+This project investigates which lifestyle, sleep, and work-related factors
+are statistically associated with human well-being, stress, and productivity.
+Five independently collected datasets are analysed using **Pearson correlation**
+and **Principal Component Analysis (PCA)**.
+
+Rather than merging all data into one table (which would introduce misleading
+cross-population comparisons), each dataset is examined separately and the
+results are compared at the end to surface recurring patterns.
+
+---
+
+## Quick Navigation
+
+| Page | What you will find |
+|---|---|
+| [Analysis](analysis.qmd) | Full statistical report with tables, figures, equations, and citations |
+| [Dashboard](dashboard.qmd) | Interactive overview — key metrics at a glance |
+| [Presentation](prezentation.qmd) | Slide deck summarising findings |
+
+---
+
+## Datasets
+
+Five cleaned datasets are used (see [Analysis §Datasets](analysis.qmd#sec-datasets) for details):
+
+- **Lifestyle & Wellness** — screen time, sleep, exercise → `wellness`
+- **Productivity & Habits** — daily habits, sleep, stress → `productivity`
+- **Sleep & Health** — clinical sleep study → `stress_level`
+- **Student Lifestyle** — study load, GPA, activity → `stress_numeric`
+- **Remote Work** — work conditions, burnout → `productivity_score`
+
+---
+
+## Methods
+
+Two complementary methods are applied to every dataset:
+
+1. **Pearson correlation** — identifies variables with the strongest direct
+   linear relationship with the target variable.
+2. **PCA** — reveals the dominant directions of variance and which original
+   variables drive them.
+
+Results do not imply causation; they describe statistical associations
+in the available samples.
+
+---
+
+## Source Code & Data
+
+All code, cleaned data, and rendered output are available on GitHub:
+[github.com/caxarr/mood-analisis](https://github.com/caxarr/mood-analisis)

@@ -1,0 +1,648 @@
+---
+title: "Analysis of Factors Affecting Well-Being"
+author: "Vladyslav Rudenko"
+date: last-modified
+abstract: |
+  This report analyses five independently collected datasets related to human
+  well-being, stress, and productivity. Pearson correlation identifies variables
+  with the strongest direct linear association with each target, while Principal
+  Component Analysis (PCA) reveals the dominant structure of each dataset.
+  Results consistently highlight sleep quality, stress level, physical activity,
+  and work-life balance as key recurring factors across all five contexts.
+  The analysis is purely exploratory: findings describe statistical associations,
+  not causal relationships.
+bibliography: references.bib
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: true
+    code-tools: true
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+```{python}
+#| label: setup
+#| include: false
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from IPython.display import display, Markdown
+
+plt.rcParams.update({
+    "figure.figsize": (9, 5),
+    "figure.dpi": 110,
+    "figure.facecolor": "white",
+    "axes.facecolor": "#FAFAFA",
+    "axes.edgecolor": "#D0D0D0",
+    "axes.linewidth": 1.0,
+    "axes.grid": True,
+    "axes.axisbelow": True,
+    "grid.color": "#E8E8E8",
+    "grid.linestyle": "--",
+    "grid.linewidth": 0.7,
+    "axes.titlesize": 13,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "font.size": 10,
+    "legend.frameon": False,
+})
+
+_ID_COLS = {"person_id", "employee_id"}
+
+def numeric_features(df, target):
+    num = df.select_dtypes(include="number").columns.tolist()
+    return [c for c in num if c != target and c not in _ID_COLS]
+
+def target_correlations(df, target):
+    feats = numeric_features(df, target)
+    return df[feats + [target]].corr(numeric_only=True)[target].drop(target)
+
+def run_pca(df, target):
+    feats = numeric_features(df, target)
+    X = df[feats].dropna()
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    pca = PCA()
+    scores = pca.fit_transform(X_scaled)
+    loadings = pd.DataFrame(
+        pca.components_.T,
+        index=feats,
+        columns=[f"PC{i}" for i in range(1, len(feats) + 1)],
+    )
+    return scores, loadings, pca.explained_variance_ratio_
+
+def plot_correlations(df, target, title):
+    corr = target_correlations(df, target).sort_values()
+    colors = ["#B65E5A" if v < 0 else "#4C78A8" for v in corr.values]
+    h = max(3.5, len(corr) * 0.45)
+    fig, ax = plt.subplots(figsize=(9, h))
+    ax.barh(corr.index, corr.values, color=colors, edgecolor="none")
+    ax.axvline(0, color="#444", linewidth=1)
+    ax.set_title(title)
+    ax.set_xlabel("Pearson correlation")
+    for i, v in enumerate(corr.values):
+        ha = "left" if v >= 0 else "right"
+        offset = 0.012 if v >= 0 else -0.012
+        ax.text(v + offset, i, f"{v:.2f}", va="center", ha=ha, fontsize=9)
+    plt.tight_layout()
+    plt.show()
+
+def plot_variance(var_ratio, title):
+    pcs = np.arange(1, len(var_ratio) + 1)
+    cum = np.cumsum(var_ratio)
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    bars = ax.bar(pcs, var_ratio, color="#4C78A8", width=0.7, edgecolor="none",
+                  label="Per-component")
+    ax.plot(pcs, cum, marker="o", color="#222", linewidth=2, label="Cumulative")
+    ax.set_xticks(pcs)
+    ax.set_title(title)
+    ax.set_xlabel("Principal component")
+    ax.set_ylabel("Variance ratio")
+    for rect, v in zip(bars, var_ratio):
+        ax.text(rect.get_x() + rect.get_width() / 2,
+                rect.get_height() + 0.01, f"{v:.2f}", ha="center", fontsize=8)
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_loadings(loadings, title):
+    pc1 = loadings["PC1"].sort_values()
+    colors = ["#B65E5A" if v < 0 else "#59A14F" for v in pc1.values]
+    h = max(3.5, len(pc1) * 0.45)
+    fig, ax = plt.subplots(figsize=(9, h))
+    ax.barh(pc1.index, pc1.values, color=colors, edgecolor="none")
+    ax.axvline(0, color="#444", linewidth=1)
+    ax.set_title(title)
+    ax.set_xlabel("Loading")
+    for i, v in enumerate(pc1.values):
+        ha = "left" if v >= 0 else "right"
+        offset = 0.012 if v >= 0 else -0.012
+        ax.text(v + offset, i, f"{v:.2f}", va="center", ha=ha, fontsize=9)
+    plt.tight_layout()
+    plt.show()
+
+def plot_pc_scatter(scores, title, max_pts=3000):
+    rng = np.random.RandomState(42)
+    s = scores
+    if len(s) > max_pts:
+        idx = rng.choice(len(s), max_pts, replace=False)
+        s = s[idx]
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    ax.scatter(s[:, 0], s[:, 1], s=25, alpha=0.55,
+               color="#4C78A8", edgecolors="none")
+    ax.axhline(0, color="#BDBDBD", linewidth=1)
+    ax.axvline(0, color="#BDBDBD", linewidth=1)
+    ax.set_title(title)
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    plt.tight_layout()
+    plt.show()
+
+def corr_table(df, target):
+    corr = target_correlations(df, target).sort_values(ascending=False)
+    out = corr.reset_index()
+    out.columns = ["Feature", "Pearson r"]
+    out["Pearson r"] = out["Pearson r"].round(3)
+    display(Markdown(out.to_markdown(index=False)))
+
+DATA_DIR = "data/clean_data"
+df_pca      = pd.read_csv(f"{DATA_DIR}/clean_pca.csv")
+df_prod     = pd.read_csv(f"{DATA_DIR}/clean_productivity.csv")
+df_sleep    = pd.read_csv(f"{DATA_DIR}/clean_sleep.csv")
+df_students = pd.read_csv(f"{DATA_DIR}/clean_students.csv")
+df_remote   = pd.read_csv(f"{DATA_DIR}/clean_remote.csv")
+```
+
+# Introduction
+
+The goal of this project is to identify which lifestyle, sleep, and work-related
+variables are most strongly associated with well-being, stress, and
+productivity. The analysis is based on five separate datasets, each representing
+a different population and context [@screentime2025; @sleep2023; @productivity2023;
+@students2023; @remote2024]. Because the datasets come from different sources and
+cannot be meaningfully merged, each one is analysed independently; the results
+are then compared in @sec-comparison to surface recurring themes.
+
+The two analytical methods applied throughout are Pearson correlation (described
+in @sec-methods-corr) and Principal Component Analysis (described in
+@sec-methods-pca). Both methods are implemented using the
+scikit-learn library [@pedregosa2011] and data manipulation relies on
+pandas [@mckinney2010].
+
+# Datasets {#sec-datasets}
+
+The five cleaned datasets used in this project are listed in @tbl-datasets.
+
+| File | Description | Target variable |
+|---|---|---|
+| `clean_pca.csv` | General lifestyle and wellness data | `wellness` |
+| `clean_productivity.csv` | Productivity and daily habits (n = 20 000) | `productivity` |
+| `clean_sleep.csv` | Clinical sleep and health study | `stress_level` |
+| `clean_students.csv` | Student lifestyle and academic outcomes | `stress_numeric` |
+| `clean_remote.csv` | Remote-work conditions and mental health | `productivity_score` |
+
+: Overview of the five analysed datasets. {#tbl-datasets}
+
+Each dataset has its own target variable; this variable is excluded from the
+predictor set during analysis and treated as the dependent measure. The
+datasets vary considerably in size (100 to 20 000 observations) and in the
+specific variables they contain, which is why a unified model is not appropriate.
+
+# Methods {#sec-methods}
+
+## Correlation Analysis {#sec-methods-corr}
+
+For each dataset, the Pearson correlation coefficient is computed between every
+numeric predictor and the selected target variable. The Pearson coefficient
+measures the strength and direction of a **linear** relationship between two
+continuous variables and is defined as:
+
+$$
+r_{xy} = \frac{\displaystyle\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}
+              {\sqrt{\displaystyle\sum_{i=1}^{n}(x_i - \bar{x})^2} \cdot
+               \sqrt{\displaystyle\sum_{i=1}^{n}(y_i - \bar{y})^2}}
+$$ {#eq-pearson}
+
+where $x_i$ and $y_i$ are paired observations, and $\bar{x}$, $\bar{y}$ are
+their respective sample means. A value of $r = +1$ indicates a perfect positive
+linear relationship; $r = -1$ a perfect negative one; $r = 0$ no linear
+association. Results should not be interpreted as evidence of causation.
+
+## Standardisation {#sec-methods-zscore}
+
+Before PCA, all predictor columns are standardised to zero mean and unit
+variance using the z-score transformation defined in @eq-zscore. This step is
+essential because PCA is sensitive to the scale of the input variables — without
+standardisation, variables with large numeric ranges would dominate the
+principal components regardless of their statistical relevance.
+
+$$
+z_i = \frac{x_i - \mu}{\sigma}
+$$ {#eq-zscore}
+
+where $\mu$ is the sample mean and $\sigma$ is the sample standard deviation
+of the variable.
+
+## Principal Component Analysis {#sec-methods-pca}
+
+PCA is an unsupervised dimensionality-reduction method that transforms the
+original $p$ numeric variables into a new orthogonal coordinate system
+[@jolliffe2016]. The first principal component (PC1) captures the largest
+possible fraction of the total variance; PC2 captures the most remaining
+variance while being orthogonal to PC1, and so on.
+
+The fraction of total variance explained by component $k$ is called the
+**explained variance ratio** (EVR):
+
+$$
+\text{EVR}_k = \frac{\lambda_k}{\displaystyle\sum_{j=1}^{p}\lambda_j}
+$$ {#eq-evr}
+
+where $\lambda_k$ is the $k$-th eigenvalue of the covariance matrix of the
+standardised data (see @eq-zscore for standardisation).
+
+Three PCA outputs are reported for each dataset: (1) the explained variance
+plot (@eq-evr), (2) the PC1 loadings, and (3) a scatter of observations
+in the PC1–PC2 plane.
+
+# Results {#sec-results}
+
+## Dataset 1: Lifestyle and Wellness {#sec-lifestyle}
+
+**Target variable:** `wellness` | **Source:** @screentime2025
+
+```{python}
+#| label: tbl-pca-corr
+#| tbl-cap: "Pearson correlations of lifestyle variables with `wellness`. Blue bars (positive r) indicate variables associated with higher wellness; red bars (negative r) indicate variables associated with lower wellness."
+corr_table(df_pca, "wellness")
+```
+
+As shown in @tbl-pca-corr, sleep quality and productivity are the variables
+most positively associated with the wellness score, while stress level shows
+the strongest negative correlation, suggesting that higher stress is
+consistently linked to lower well-being in this dataset.
+
+```{python}
+#| label: fig-pca-corr
+#| fig-cap: "Pearson correlations between lifestyle variables and `wellness`. Bars to the right indicate positive associations; bars to the left indicate negative associations."
+plot_correlations(df_pca, "wellness", "Lifestyle: Correlation with Wellness")
+```
+
+@fig-pca-corr visualises the same information graphically. The magnitude of the
+bar reflects the strength of the association; the sign indicates its direction.
+Variables with absolute $r$ values above 0.3 are considered practically
+meaningful in exploratory analyses.
+
+```{python}
+#| label: fig-pca-var
+#| fig-cap: "PCA explained variance for the lifestyle dataset. Bars show per-component variance; the line shows cumulative variance. The first two components together explain a substantial fraction of total variability."
+scores_pca, loadings_pca, vr_pca = run_pca(df_pca, "wellness")
+plot_variance(vr_pca, "Lifestyle: PCA Explained Variance")
+```
+
+@fig-pca-var shows how the total variance is distributed across principal
+components. If the first two or three components account for a large share of
+the total variance, the dataset has a compact low-dimensional structure that can
+be summarised without losing much information.
+
+```{python}
+#| label: fig-pca-load
+#| fig-cap: "PC1 loadings for the lifestyle dataset. Large absolute loading values indicate variables that contribute most strongly to the dominant pattern."
+plot_loadings(loadings_pca, "Lifestyle: PC1 Loadings")
+```
+
+@fig-pca-load reveals which variables drive PC1 (the direction of maximum
+variance). Variables with loadings of the same sign move together, while
+variables with opposite signs move in opposing directions within the dominant
+pattern.
+
+```{python}
+#| label: fig-pca-scatter
+#| fig-cap: "PC1 vs PC2 scatter for the lifestyle dataset. Each point represents one observation projected into the two-dimensional PCA space."
+plot_pc_scatter(scores_pca, "Lifestyle: PC1 vs PC2")
+```
+
+@fig-pca-scatter projects all observations into the PC1–PC2 plane. Visible
+clusters or gradients would suggest meaningful subgroups in the data; a uniform
+cloud would indicate that variation is continuous and unsegmented.
+
+---
+
+## Dataset 2: Productivity and Daily Habits {#sec-productivity}
+
+**Target variable:** `productivity` | **Source:** @productivity2023
+
+```{python}
+#| label: tbl-prod-corr
+#| tbl-cap: "Pearson correlations of daily-habit variables with `productivity` (n = 20 000)."
+corr_table(df_prod, "productivity")
+```
+
+@tbl-prod-corr summarises the linear associations for the productivity dataset.
+With 20 000 observations, even small correlation coefficients can be
+statistically significant, so magnitude should be assessed alongside direction.
+
+```{python}
+#| label: fig-prod-corr
+#| fig-cap: "Pearson correlations between daily-habit variables and `productivity`."
+plot_correlations(df_prod, "productivity", "Productivity: Correlation with Productivity")
+```
+
+The pattern in @fig-prod-corr indicates which daily habits have the most
+direct linear relationship with productivity. Variables that appear repeatedly
+across datasets (e.g., sleep, stress) provide stronger evidence for their role
+in well-being.
+
+```{python}
+#| label: fig-prod-var
+#| fig-cap: "PCA explained variance for the productivity dataset."
+scores_prod, loadings_prod, vr_prod = run_pca(df_prod, "productivity")
+plot_variance(vr_prod, "Productivity: PCA Explained Variance")
+```
+
+@fig-prod-var shows the variance distribution across principal components for
+the productivity dataset. The shape of the cumulative curve reveals how quickly
+the most important dimensions can account for the majority of variability.
+
+```{python}
+#| label: fig-prod-load
+#| fig-cap: "PC1 loadings for the productivity dataset."
+plot_loadings(loadings_prod, "Productivity: PC1 Loadings")
+```
+
+@fig-prod-load identifies which predictors contribute most to PC1. If multiple
+lifestyle-related variables (sleep, stress, exercise) load strongly on the same
+component, this supports the hypothesis that well-being is multi-factorial rather
+than driven by a single cause.
+
+```{python}
+#| label: fig-prod-scatter
+#| fig-cap: "PC1 vs PC2 scatter for the productivity dataset (random subsample of 3 000 observations)."
+plot_pc_scatter(scores_prod, "Productivity: PC1 vs PC2")
+```
+
+Due to the large sample size, @fig-prod-scatter displays a random subsample
+of 3 000 observations to keep the plot readable without losing the overall
+distributional shape.
+
+---
+
+## Dataset 3: Sleep and Stress {#sec-sleep}
+
+**Target variable:** `stress_level` | **Source:** @sleep2023
+
+```{python}
+#| label: tbl-sleep-corr
+#| tbl-cap: "Pearson correlations of sleep and health variables with `stress_level`. Non-numeric columns (gender, occupation, BMI category, blood pressure, sleep disorder) are excluded from the analysis."
+corr_table(df_sleep, "stress_level")
+```
+
+As @tbl-sleep-corr shows, sleep quality and duration tend to correlate
+negatively with stress level (higher sleep quality → lower stress), while
+variables like heart rate may exhibit a positive association. Note that only
+numeric columns are included; categorical variables such as occupation and
+BMI category are excluded.
+
+```{python}
+#| label: fig-sleep-corr
+#| fig-cap: "Pearson correlations between numeric sleep/health variables and `stress_level`."
+plot_correlations(df_sleep, "stress_level", "Sleep: Correlation with Stress Level")
+```
+
+@fig-sleep-corr provides a visual overview of correlation directions. This
+dataset is particularly relevant because the relationship between sleep and stress
+is well-established in the clinical literature, making it a useful benchmark
+for verifying that the analysis produces plausible results.
+
+```{python}
+#| label: fig-sleep-var
+#| fig-cap: "PCA explained variance for the sleep dataset."
+scores_sleep, loadings_sleep, vr_sleep = run_pca(df_sleep, "stress_level")
+plot_variance(vr_sleep, "Sleep: PCA Explained Variance")
+```
+
+@fig-sleep-var shows the eigenvalue decay for the sleep dataset. A steep drop
+after PC1 indicates that one dominant pattern accounts for most of the structure;
+a gentler slope means the variance is spread more evenly across dimensions.
+
+```{python}
+#| label: fig-sleep-load
+#| fig-cap: "PC1 loadings for the sleep dataset."
+plot_loadings(loadings_sleep, "Sleep: PC1 Loadings")
+```
+
+@fig-sleep-load identifies the health and lifestyle variables that define the
+primary direction of variation. Variables with large absolute loadings on PC1
+are the main contributors to the dominant pattern in this dataset.
+
+```{python}
+#| label: fig-sleep-scatter
+#| fig-cap: "PC1 vs PC2 scatter for the sleep dataset."
+plot_pc_scatter(scores_sleep, "Sleep: PC1 vs PC2")
+```
+
+@fig-sleep-scatter shows how the 374 observations distribute in the
+two-dimensional PCA space. The presence of visible bands or clusters would
+suggest that the dataset contains distinguishable subgroups (e.g., people with
+and without sleep disorders).
+
+---
+
+## Dataset 4: Student Lifestyle {#sec-students}
+
+**Target variable:** `stress_numeric` | **Source:** @students2023
+
+```{python}
+#| label: tbl-students-corr
+#| tbl-cap: "Pearson correlations of student lifestyle variables with `stress_numeric`."
+corr_table(df_students, "stress_numeric")
+```
+
+@tbl-students-corr presents the associations for the student dataset.
+Variables such as study hours per day, sleep hours, and GPA are typically
+expected to relate to stress; the table shows whether these expectations are
+confirmed in this sample.
+
+```{python}
+#| label: fig-students-corr
+#| fig-cap: "Pearson correlations between student lifestyle variables and `stress_numeric`."
+plot_correlations(df_students, "stress_numeric", "Students: Correlation with Stress")
+```
+
+@fig-students-corr shows which aspects of student life most strongly predict
+the numeric stress score. This comparison is interesting because student stress
+operates in a different context from clinical or workplace stress, yet some
+common factors (sleep, activity) may still emerge.
+
+```{python}
+#| label: fig-students-var
+#| fig-cap: "PCA explained variance for the student lifestyle dataset."
+scores_students, loadings_students, vr_students = run_pca(df_students, "stress_numeric")
+plot_variance(vr_students, "Students: PCA Explained Variance")
+```
+
+The variance decomposition in @fig-students-var indicates how many components
+are needed to capture the main structure of the student dataset. Because the
+dataset has only 6 predictor variables, the maximum number of components is 6.
+
+```{python}
+#| label: fig-students-load
+#| fig-cap: "PC1 loadings for the student lifestyle dataset."
+plot_loadings(loadings_students, "Students: PC1 Loadings")
+```
+
+@fig-students-load shows which student lifestyle variables dominate PC1.
+If study hours and sleep hours load with opposite signs, it would suggest a
+trade-off pattern: students who study more tend to sleep less, and vice versa.
+
+```{python}
+#| label: fig-students-scatter
+#| fig-cap: "PC1 vs PC2 scatter for the student lifestyle dataset."
+plot_pc_scatter(scores_students, "Students: PC1 vs PC2")
+```
+
+@fig-students-scatter maps the 2 000 student observations into the PC1–PC2
+plane. A clear linear or curved structure would imply that student lifestyle
+profiles vary along a well-defined continuum.
+
+---
+
+## Dataset 5: Remote Work {#sec-remote}
+
+**Target variable:** `productivity_score` | **Source:** @remote2024
+
+```{python}
+#| label: tbl-remote-corr
+#| tbl-cap: "Pearson correlations of remote-work variables with `productivity_score`. Non-numeric columns and boolean indicators are excluded; ID column `employee_id` is also dropped."
+corr_table(df_remote, "productivity_score")
+```
+
+@tbl-remote-corr presents the correlations for the remote work dataset.
+With only 100 observations, individual correlations should be interpreted
+cautiously, but the overall pattern can still indicate which aspects of remote
+work conditions most closely align with productivity.
+
+```{python}
+#| label: fig-remote-corr
+#| fig-cap: "Pearson correlations between remote-work numeric variables and `productivity_score`."
+plot_correlations(df_remote, "productivity_score", "Remote Work: Correlation with Productivity Score")
+```
+
+@fig-remote-corr shows whether variables such as work-life balance, sleep
+hours, and burnout score exhibit direct linear associations with the remote
+productivity score. A high absolute correlation for burnout would be consistent
+with the expectation that burnout and productivity are inversely related.
+
+```{python}
+#| label: fig-remote-var
+#| fig-cap: "PCA explained variance for the remote work dataset."
+scores_remote, loadings_remote, vr_remote = run_pca(df_remote, "productivity_score")
+plot_variance(vr_remote, "Remote Work: PCA Explained Variance")
+```
+
+@fig-remote-var shows how the 8 numeric predictor variables spread across
+principal components. Because the dataset is small (100 rows), PCA results
+should be treated as indicative rather than definitive.
+
+```{python}
+#| label: fig-remote-load
+#| fig-cap: "PC1 loadings for the remote work dataset."
+plot_loadings(loadings_remote, "Remote Work: PC1 Loadings")
+```
+
+@fig-remote-load identifies which remote-work predictors define the dominant
+pattern. Variables loading strongly on PC1 are those that co-vary the most
+across the 100 observed employees.
+
+```{python}
+#| label: fig-remote-scatter
+#| fig-cap: "PC1 vs PC2 scatter for the remote work dataset."
+plot_pc_scatter(scores_remote, "Remote Work: PC1 vs PC2")
+```
+
+@fig-remote-scatter shows the relatively small remote work sample in the
+two-dimensional PCA space. Outliers or tight clusters would warrant closer
+examination to understand whether they represent specific subgroups (e.g., by
+work mode or job role).
+
+---
+
+# General Comparison {#sec-comparison}
+
+@tbl-summary below summarises the strongest positive and negative correlation
+with the target variable in each dataset. This cross-dataset view makes it
+possible to identify variables that recur as important predictors across
+multiple contexts.
+
+```{python}
+#| label: tbl-summary
+#| tbl-cap: "Strongest positive and negative Pearson correlation with the target variable in each dataset."
+_datasets_info = [
+    ("Lifestyle",   df_pca,      "wellness"),
+    ("Productivity",df_prod,     "productivity"),
+    ("Sleep",       df_sleep,    "stress_level"),
+    ("Students",    df_students, "stress_numeric"),
+    ("Remote Work", df_remote,   "productivity_score"),
+]
+
+rows = []
+for name, df, tgt in _datasets_info:
+    corr = target_correlations(df, tgt)
+    pos = corr[corr > 0]
+    neg = corr[corr < 0]
+    top_pos = f"{pos.idxmax()} ({pos.max():.2f})" if len(pos) > 0 else "—"
+    top_neg = f"{neg.idxmin()} ({neg.min():.2f})" if len(neg) > 0 else "—"
+    rows.append({
+        "Dataset": name,
+        "Target": tgt,
+        "Strongest positive": top_pos,
+        "Strongest negative": top_neg,
+    })
+
+display(Markdown(pd.DataFrame(rows).to_markdown(index=False)))
+```
+
+As @tbl-summary demonstrates, several variable types recur across datasets:
+
+- **Sleep-related variables** appear in the lifestyle, sleep, student, and
+  remote work datasets, consistently showing a positive relationship with
+  well-being indicators.
+- **Stress level** appears in multiple datasets as the strongest negative
+  predictor, which is expected given that all targets are measures of
+  well-being or performance.
+- **Physical activity** shows positive associations in the lifestyle and
+  student datasets.
+- **Work-life balance** ranks highly in the remote work dataset.
+
+This cross-dataset consistency provides stronger evidence that these factors
+are genuinely associated with well-being, rather than being artefacts of any
+single sample.
+
+# Limitations
+
+Several limitations should be acknowledged:
+
+1. **Different populations and measurement scales.** The five datasets describe
+   different groups of people using different instruments. Direct numeric
+   comparison of correlation coefficients across datasets may be misleading.
+2. **Correlation ≠ causation.** @eq-pearson measures linear association only.
+   No causal inference is warranted from these results.
+3. **Sample sizes vary greatly.** The remote work dataset has only 100
+   observations, making its PCA results (see @sec-remote) less reliable than
+   those for the productivity dataset (n = 20 000).
+4. **Missing variables.** Stress, sleep, and activity are consistently
+   important, but many potential confounders (age structure, socioeconomic
+   status, cultural context) are absent from most datasets.
+
+# Conclusion
+
+This analysis examined five datasets related to human well-being, stress, and
+productivity using Pearson correlation (@eq-pearson) and PCA
+(@eq-evr). The standardisation step (@eq-zscore) ensured that PCA results
+are scale-invariant.
+
+Across all five datasets (summarised in @tbl-summary and @tbl-datasets), a
+consistent picture emerges: **sleep quality and duration**, **stress level**,
+**physical activity**, and **work-life balance** are the variables most
+frequently and most strongly associated with the respective target variables.
+These factors appear in contexts as different as student life, clinical sleep
+studies, and remote work, which makes the pattern more robust.
+
+The analysis has been conducted in a purely exploratory manner. All source code
+is embedded in this document (use the "Code" toggle on any section to reveal it)
+and can be reproduced by running `quarto render analysis.qmd` from the project
+root, provided that the `data/clean_data/` directory is present.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::

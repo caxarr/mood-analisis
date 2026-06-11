@@ -1,0 +1,192 @@
+---
+title: "Analysis of Factors Affecting Well-Being"
+author: "Vladyslav Rudenko"
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: slide
+    width: 1280
+    height: 720
+    margin: 0.08
+    footer: "Well-Being Analysis — Vladyslav Rudenko"
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{python}
+#| label: setup
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+plt.rcParams.update({
+    "figure.facecolor": "white",
+    "axes.facecolor": "#FAFAFA",
+    "axes.edgecolor": "#D0D0D0",
+    "axes.linewidth": 1.0,
+    "axes.grid": True,
+    "axes.axisbelow": True,
+    "grid.color": "#E6E6E6",
+    "grid.linestyle": "--",
+    "axes.titlesize": 13,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+})
+
+_ID = {"person_id", "employee_id"}
+
+def numeric_features(df, target):
+    num = df.select_dtypes(include="number").columns.tolist()
+    return [c for c in num if c != target and c not in _ID]
+
+def target_correlations(df, target):
+    feats = numeric_features(df, target)
+    return df[feats + [target]].corr(numeric_only=True)[target].drop(target)
+
+def plot_corr_slide(df, target, title):
+    corr = target_correlations(df, target).sort_values()
+    colors = ["#B65E5A" if v < 0 else "#4C78A8" for v in corr.values]
+    h = max(4.0, len(corr) * 0.5)
+    fig, ax = plt.subplots(figsize=(10, h))
+    ax.barh(corr.index, corr.values, color=colors, edgecolor="none")
+    ax.axvline(0, color="#444", linewidth=1)
+    ax.set_title(title, fontsize=14)
+    ax.set_xlabel("Pearson r")
+    for i, v in enumerate(corr.values):
+        ha = "left" if v >= 0 else "right"
+        ax.text(v + (0.012 if v >= 0 else -0.012), i, f"{v:.2f}",
+                va="center", ha=ha, fontsize=9)
+    plt.tight_layout()
+    plt.show()
+    plt.close(fig)
+
+DATA_DIR = "data/clean_data"
+df_pca      = pd.read_csv(f"{DATA_DIR}/clean_pca.csv")
+df_prod     = pd.read_csv(f"{DATA_DIR}/clean_productivity.csv")
+df_sleep    = pd.read_csv(f"{DATA_DIR}/clean_sleep.csv")
+df_students = pd.read_csv(f"{DATA_DIR}/clean_students.csv")
+df_remote   = pd.read_csv(f"{DATA_DIR}/clean_remote.csv")
+```
+
+## Project Idea
+
+I analysed which factors are related to well-being, stress, and productivity.
+
+The main focus was on:
+
+- Sleep
+- Stress
+- Physical activity
+- Daily habits
+- Productivity and work-life balance
+
+---
+
+## Datasets
+
+| Dataset | Target |
+|---|---|
+| Lifestyle | wellness |
+| Productivity | productivity |
+| Sleep | stress_level |
+| Students | stress_numeric |
+| Remote work | productivity_score |
+
+I analysed the datasets separately because they describe different groups of people.
+
+---
+
+## Methods
+
+I used two main methods:
+
+**Correlation analysis**
+Shows which variables are directly related to the target.
+
+**PCA**
+Shows the main structure of the dataset and reduces many variables into
+several principal components.
+
+---
+
+## Lifestyle Dataset
+
+Target: **wellness**
+
+```{python}
+plot_corr_slide(df_pca, "wellness", "Lifestyle: Correlation with Wellness")
+```
+
+This plot shows which lifestyle factors are most related to the wellness score.
+
+---
+
+## Productivity Dataset
+
+Target: **productivity**
+
+```{python}
+plot_corr_slide(df_prod, "productivity", "Productivity: Correlation with Productivity")
+```
+
+This helped identify which daily habits are connected with higher or lower productivity.
+
+---
+
+## Sleep Dataset
+
+Target: **stress_level**
+
+```{python}
+plot_corr_slide(df_sleep, "stress_level", "Sleep: Correlation with Stress Level")
+```
+
+This dataset was useful because stress is strongly connected with sleep and health variables.
+
+---
+
+## Student Dataset
+
+Target: **stress_numeric**
+
+```{python}
+plot_corr_slide(df_students, "stress_numeric", "Students: Correlation with Stress")
+```
+
+The goal was to see how student lifestyle factors are related to stress.
+
+---
+
+## Remote Work Dataset
+
+Target: **productivity_score**
+
+```{python}
+plot_corr_slide(df_remote, "productivity_score", "Remote Work: Correlation with Productivity Score")
+```
+
+This part focused on productivity in remote work conditions.
+
+---
+
+## Conclusion
+
+The same types of variables appeared repeatedly:
+
+- **Sleep** (quality and duration)
+- **Stress**
+- **Physical activity**
+- **Daily habits**
+- **Lifestyle or work-life balance**
+
+The analysis does not prove causality, but it shows clear statistical
+relationships in the available data.
